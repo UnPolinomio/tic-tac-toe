@@ -1,4 +1,4 @@
-import { allEqual } from './utils'
+import Board from './Board'
 
 type FourNumberTuple = [number, number, number, number]
 type ThreeNumberTuple = [number, number, number]
@@ -6,14 +6,14 @@ type ThreeNumberTuple = [number, number, number]
 export default class Game {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
+    board: Board
     size: number
-    status: [ThreeNumberTuple, ThreeNumberTuple, ThreeNumberTuple]
     currentPlayer: 1 | 2
 
     constructor(canvas: HTMLCanvasElement, size: number) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
-        this.status = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        this.board = new Board()
         this.currentPlayer = 1
 
         this.setSize(size)
@@ -46,7 +46,7 @@ export default class Game {
         }
     }
 
-    private drawGrid() {
+    protected drawGrid() {
         const s = this.convertSize
         const sa = this.convertSizeArray
         const ctx = this.ctx
@@ -70,7 +70,7 @@ export default class Game {
         ctx.stroke()
     }
 
-    private drawX(x: number, y: number) {
+    protected drawX(x: number, y: number) {
         const width = this.convertSize(100 / 7)
 
         this.ctx.save()
@@ -89,7 +89,8 @@ export default class Game {
 
         this.ctx.restore()
     }
-    private drawO(x: number, y: number) {
+
+    protected drawO(x: number, y: number) {
         const width = this.convertSize(100 / 7)
         this.ctx.save()
         this.ctx.translate(x, y)
@@ -106,8 +107,8 @@ export default class Game {
     draw() {
         const sa = this.convertSizeArray
 
-        for (let i = 0; i < this.status.length; i++) {
-            const row = this.status[i]
+        for (let i = 0; i < this.board.status.length; i++) {
+            const row = this.board.status[i]
 
             for (let j = 0; j < row.length; j++) {
                 const value = row[j]
@@ -122,59 +123,25 @@ export default class Game {
             }
         }
 
-
-
-
         this.drawGrid()
     }
 
-    private arrayAllEqualAndNotZero(array: any[]) {
-        return allEqual(array) && !array.includes(0)
-    }
 
-    private checkIfPlayerWins() {
-        const status = this.status
-
-        // Check rows
-        for (let i of [0, 1, 2]) {
-            if (this.arrayAllEqualAndNotZero(status[i])) return true
-        }
-
-        // Check columns
-        for (let j of [0, 1, 2]) {
-            const column = status.map(row => row[j])
-            if (this.arrayAllEqualAndNotZero(column)) return true
-        }
-
-        // Check diagonals
-        const diagonal1 = [status[0][0], status[1][1], status[2][2]]
-        if (this.arrayAllEqualAndNotZero(diagonal1)) return true
-        
-        const diagonal2 = [status[2][0], status[1][1], status[0][2]]
-        if (this.arrayAllEqualAndNotZero(diagonal2)) return true
-
-
-        return false
-    }
-
-    private checkIfAllGridIsFilled() {
-        return this.status.every(row => row.every(stat => stat != 0))
-    }
 
     handleClick(event: MouseEvent) {
         const { x, y } = this.getMousePosition(event)
         let i: number, j: number
         i = Math.min(2, Math.floor(y / (100 / 3)))
         j = Math.min(2, Math.floor(x / (100 / 3)))
-        if (this.status[i][j] === 0 ){
-            this.status[i][j] = this.currentPlayer
+        if (this.board.status[i][j] === 0 ){
+            this.board.status[i][j] = this.currentPlayer
         } else {
             return;
         }
 
         this.draw()
 
-        if (this.checkIfPlayerWins()) {
+        if (this.board.checkIfPlayerWins()) {
             const restartGame = confirm(`El jugador ${this.currentPlayer} ha ganado. ¿Desea reiniciar el juego?`)
             if (restartGame) {
                 this.restart()
@@ -183,7 +150,7 @@ export default class Game {
                 return
             }
             return
-        } else if (this.checkIfAllGridIsFilled()) {
+        } else if (this.board.checkIfAllGridIsFilled()) {
             const restartGame = confirm('Es empate. ¿Desea reiniciar el juego?')
             if (restartGame) {
                 this.restart()
@@ -207,7 +174,7 @@ export default class Game {
 
     restart() {
         const s = this.convertSize
-        this.status = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        this.board.status = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         this.ctx.clearRect(0, 0, s(100), s(100))
         this.draw()
     }
