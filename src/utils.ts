@@ -8,3 +8,7 @@ export function getCanvasSize() {
 export function allEqual(array: any[]) {
     return array.every(value => value === array[0])
 }
+
+export function getLanguage() {
+    return navigator.language.slice(0, 2)
+}

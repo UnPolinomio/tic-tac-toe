@@ -1,19 +1,28 @@
 import Board from './Board'
+import { defaultTranslateDictionary, TranslateDictionaryType } from './translation'
+import { getLanguage } from './utils'
 
-type FourNumberTuple = [number, number, number, number]
-type ThreeNumberTuple = [number, number, number]
+export interface GameConfigType {
+    translateDictionary: TranslateDictionaryType
+}
+const lang = getLanguage()
+const defaultGameConfig: GameConfigType = {
+    translateDictionary: defaultTranslateDictionary[Object.keys(defaultTranslateDictionary).includes(lang) ? lang : 'en']
+}
 
 export default class Game {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
+    config: GameConfigType
     board: Board
     size: number
     currentPlayer: 1 | 2
 
-    constructor(canvas: HTMLCanvasElement, size: number) {
+    constructor(canvas: HTMLCanvasElement, size: number, config: GameConfigType = defaultGameConfig) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
         this.board = new Board()
+        this.config = config
         this.currentPlayer = 1
 
         this.setSize(size)
@@ -141,8 +150,9 @@ export default class Game {
 
         this.draw()
 
+        const translate = this.config.translateDictionary
         if (this.board.checkIfPlayerWins()) {
-            const restartGame = confirm(`El jugador ${this.currentPlayer} ha ganado. ¿Desea reiniciar el juego?`)
+            const restartGame = confirm(`${translate.playerWins.replace('$player', this.currentPlayer.toString())} ${translate.restart}`)
             if (restartGame) {
                 this.restart()
             } else {
@@ -151,7 +161,7 @@ export default class Game {
             }
             return
         } else if (this.board.checkIfAllGridIsFilled()) {
-            const restartGame = confirm('Es empate. ¿Desea reiniciar el juego?')
+            const restartGame = confirm(`${translate.tie} ${translate.restart}`)
             if (restartGame) {
                 this.restart()
             } else {
