@@ -1,31 +1,35 @@
 import Board from './Board'
 import { defaultTranslateDictionary, TranslateDictionaryType } from './translation'
-import { getLanguage } from './utils'
+import { getLanguage, getSquaredWindowSize } from './utils'
 
 export interface GameConfigType {
-    translateDictionary: TranslateDictionaryType
+    size?: number
+    translateDictionary?: TranslateDictionaryType
 }
+
 const lang = getLanguage()
 const defaultGameConfig: GameConfigType = {
+    size: getSquaredWindowSize(),
     translateDictionary: defaultTranslateDictionary[Object.keys(defaultTranslateDictionary).includes(lang) ? lang : 'en']
 }
+
 
 export default class Game {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
     config: GameConfigType
     board: Board
-    size: number
     currentPlayer: 1 | 2
 
-    constructor(canvas: HTMLCanvasElement, size: number, config: GameConfigType = defaultGameConfig) {
+
+    constructor(canvas: HTMLCanvasElement, config?: GameConfigType) {
         this.canvas = canvas
         this.ctx = canvas.getContext('2d')
         this.board = new Board()
-        this.config = config
+        this.config = { ...defaultGameConfig, ...config }
         this.currentPlayer = 1
 
-        this.setSize(size)
+        this.setSize(this.config.size)
 
         this.convertSize = this.convertSize.bind(this)
         this.convertSizeArray = this.convertSizeArray.bind(this)
@@ -33,14 +37,14 @@ export default class Game {
     }
     
     setSize(size: number) {
-        this.size = size
+        this.config.size = size
     
         this.canvas.width = size
         this.canvas.height = size
     }
 
     protected convertSize(size: number) {
-        return size * this.size/ 100 as number
+        return size * this.config.size / 100
     }
 
     protected convertSizeArray(...sizes: number[]) {
@@ -50,14 +54,13 @@ export default class Game {
     protected getMousePosition(event: MouseEvent) {
         const rect = this.canvas.getBoundingClientRect()
         return {
-            x: (event.clientX - rect.left) * 100 / this.size,
-            y: (event.clientY - rect.top) * 100 / this.size
+            x: (event.clientX - rect.left) * 100 / this.config.size,
+            y: (event.clientY - rect.top) * 100 / this.config.size
         }
     }
 
     protected drawGrid() {
         const s = this.convertSize
-        const sa = this.convertSizeArray
         const ctx = this.ctx
         
         ctx.lineWidth = 7

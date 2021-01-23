@@ -1,14 +1,13 @@
 import Game from './Game'
-import { getCanvasSize } from './utils'
+import { getSquaredWindowSize } from './utils'
 
 const canvas = document.createElement('canvas')
-const size = getCanvasSize()
-const TicTacToe = new Game(canvas, size)
-
 document.body.appendChild(canvas)
+
+const TicTacToe = new Game(canvas)
 TicTacToe.start()
 
 window.addEventListener('resize', (event) => {
-    TicTacToe.setSize(getCanvasSize())
+    TicTacToe.setSize(getSquaredWindowSize())
     TicTacToe.draw()
 })

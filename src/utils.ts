@@ -1,4 +1,4 @@
-export function getCanvasSize() {
+export function getSquaredWindowSize() {
     const width = window.innerWidth, height = window.innerHeight
     const size = width < height ? width : height
 
