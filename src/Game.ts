@@ -21,6 +21,7 @@ export default class Game {
     board: Board
     currentPlayer: 1 | 2
 
+    static playerSymbols = ['X', 'O']
 
     constructor(canvas: HTMLCanvasElement, config?: GameConfigType) {
         this.canvas = canvas
@@ -117,6 +118,7 @@ export default class Game {
     }
 
     draw() {
+        console.log(this.currentPlayer)
         const sa = this.convertSizeArray
 
         for (let i = 0; i < this.board.status.length; i++) {
@@ -154,8 +156,9 @@ export default class Game {
         this.draw()
 
         const translate = this.config.translateDictionary
+        const playerSymbol = `"${Game.playerSymbols[this.currentPlayer - 1]}"`
         if (this.board.checkIfPlayerWins()) {
-            const restartGame = confirm(`${translate.playerWins.replace('$player', this.currentPlayer.toString())} ${translate.restart}`)
+            const restartGame = confirm(`${translate.playerWins.replace('$player', playerSymbol)} ${translate.restart}`)
             if (restartGame) {
                 this.restart()
             } else {
