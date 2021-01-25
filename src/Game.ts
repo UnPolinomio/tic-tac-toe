@@ -117,15 +117,17 @@ export default class Game {
         this.ctx.restore()
     }
 
-    draw() {
-        console.log(this.currentPlayer)
+    redraw() {
+        const s = this.convertSize
         const sa = this.convertSizeArray
 
+        this.ctx.clearRect(0, 0, s(100), s(100))
         for (let i = 0; i < this.board.status.length; i++) {
             const row = this.board.status[i]
 
             for (let j = 0; j < row.length; j++) {
                 const value = row[j]
+
                 const [x, y] = sa(100/6 + j*100/3, 100/6 + i*100/3)
 
                 if (value === 1) {
@@ -140,8 +142,6 @@ export default class Game {
         this.drawGrid()
     }
 
-
-
     handleClick(event: MouseEvent) {
         const { x, y } = this.getMousePosition(event)
         let i: number, j: number
@@ -149,38 +149,45 @@ export default class Game {
         j = Math.min(2, Math.floor(x / (100 / 3)))
         if (this.board.status[i][j] === 0 ){
             this.board.status[i][j] = this.currentPlayer
+            const [x, y] = this.convertSizeArray(100/6 + j*100/3, 100/6 + i*100/3)
+
+            if (this.currentPlayer === 1) {
+                this.drawX(x, y)
+            } else {
+                this.drawO(x, y)
+            }
         } else {
-            return;
-        }
-
-        this.draw()
-
-        const translate = this.config.translateDictionary
-        const playerSymbol = `"${Game.playerSymbols[this.currentPlayer - 1]}"`
-        if (this.board.checkIfPlayerWins()) {
-            const restartGame = confirm(`${translate.playerWins.replace('$player', playerSymbol)} ${translate.restart}`)
-            if (restartGame) {
-                this.restart()
-            } else {
-                this.stop()
-                return
-            }
             return
-        } else if (this.board.checkIfAllGridIsFilled()) {
-            const restartGame = confirm(`${translate.tie} ${translate.restart}`)
-            if (restartGame) {
-                this.restart()
-            } else {
-                this.stop()
-                return
-            }
         }
         
-        this.currentPlayer = this.currentPlayer === 1 ? 2 : 1
+        const translate = this.config.translateDictionary
+        const playerSymbol = `"${Game.playerSymbols[this.currentPlayer - 1]}"`
+        let restartGame = false
+        let winOrTie = false
+
+        if (this.board.checkIfPlayerWins()) {
+            restartGame = confirm(`${translate.playerWins.replace('$player', playerSymbol)} ${translate.restart}`)
+            winOrTie = true
+        } else if (this.board.checkIfAllGridIsFilled()) {
+            restartGame = confirm(`${translate.tie} ${translate.restart}`)
+            winOrTie = true
+        }
+
+        if (!winOrTie) {
+            this.currentPlayer = this.currentPlayer === 1 ? 2 : 1
+            return
+        }
+
+        this.currentPlayer = 1
+        if (restartGame) {
+            this.restart()
+        } else {
+            this.stop()
+        }
     }
 
     start() {
-        this.draw()
+        this.drawGrid()
         this.canvas.addEventListener('click', this.handleClick)
     }
 
@@ -189,9 +196,7 @@ export default class Game {
     }
 
     restart() {
-        const s = this.convertSize
         this.board.status = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-        this.ctx.clearRect(0, 0, s(100), s(100))
-        this.draw()
+        this.redraw()
     }
 }

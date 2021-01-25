@@ -9,5 +9,5 @@ TicTacToe.start()
 
 window.addEventListener('resize', (event) => {
     TicTacToe.setSize(getSquaredWindowSize())
-    TicTacToe.draw()
+    TicTacToe.redraw()
 })
