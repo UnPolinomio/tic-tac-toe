@@ -20,5 +20,11 @@ module.exports = {
   },
   buildOptions: {
     /* ... */
+    out: 'demo'
+  },
+  optimize: {
+    bundle: true,
+    minify: true,
+    target: 'es2018',
   },
 };
