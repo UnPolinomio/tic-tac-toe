@@ -5,13 +5,17 @@ import { getLanguage, getSquaredWindowSize } from './utils'
 export interface GameConfigType {
     size?: number
     translateDictionary?: TranslateDictionaryType,
-    autoPlayer?: (currentBoard: Board, player: 1 | 2) => [BoardIndex, BoardIndex]
+    autoPlayer?: (currentBoard: Board, player: 1 | 2) => [BoardIndex, BoardIndex],
+    autoStart?: boolean,
+    resetAspectRatioOnWindowResize?: boolean
 }
 
 const lang = getLanguage()
 const defaultGameConfig: GameConfigType = {
     size: getSquaredWindowSize(),
-    translateDictionary: defaultTranslateDictionary[Object.keys(defaultTranslateDictionary).includes(lang) ? lang : 'en']
+    translateDictionary: defaultTranslateDictionary[Object.keys(defaultTranslateDictionary).includes(lang) ? lang : 'en'],
+    autoStart: true,
+    resetAspectRatioOnWindowResize: true
 }
 
 
@@ -37,6 +41,19 @@ export class Game {
         this.convertSize = this.convertSize.bind(this)
         this.convertSizeArray = this.convertSizeArray.bind(this)
         this.handleClick = this.handleClick.bind(this)
+        this.handleWindowResize = this.handleWindowResize.bind(this)
+
+        if (this.config.autoStart) {
+            this.start()
+        }
+        if (this.config.resetAspectRatioOnWindowResize) {
+            window.addEventListener('resize', this.handleWindowResize)
+        }
+    }
+
+    protected handleWindowResize () {
+        this.setSize(getSquaredWindowSize())
+        this.redraw()
     }
     
     setSize(size: number) {
