@@ -1,10 +1,11 @@
-import Board from './Board'
+import { Board, BoardIndex } from './Board'
 import { defaultTranslateDictionary, TranslateDictionaryType } from './translation'
 import { getLanguage, getSquaredWindowSize } from './utils'
 
 export interface GameConfigType {
     size?: number
-    translateDictionary?: TranslateDictionaryType
+    translateDictionary?: TranslateDictionaryType,
+    autoPlayer?: (currentBoard: Board, player: 1 | 2) => [BoardIndex, BoardIndex]
 }
 
 const lang = getLanguage()
@@ -14,12 +15,13 @@ const defaultGameConfig: GameConfigType = {
 }
 
 
-export default class Game {
+export class Game {
     ctx: CanvasRenderingContext2D
     canvas: HTMLCanvasElement
     config: GameConfigType
     board: Board
     currentPlayer: 1 | 2
+    stoped = false
 
     static playerSymbols = ['X', 'O']
 
@@ -142,11 +144,25 @@ export default class Game {
         this.drawGrid()
     }
 
-    handleClick(event: MouseEvent) {
+    protected handleClick(event: MouseEvent) {
         const { x, y } = this.getMousePosition(event)
         let i: number, j: number
         i = Math.min(2, Math.floor(y / (100 / 3)))
         j = Math.min(2, Math.floor(x / (100 / 3)))
+
+        const validMove = this.playIn(i, j)
+        const autoPlayer = this.config.autoPlayer
+
+        if (autoPlayer && validMove && !this.stoped) {
+            this.playIn(...autoPlayer(this.board, this.currentPlayer))
+        }
+    }
+
+    playIn(i: number, j: number): boolean { // returns if move is valid
+        if (this.stoped) {
+            throw new Error('Game is stoped')
+        }
+
         if (this.board.status[i][j] === 0 ){
             this.board.status[i][j] = this.currentPlayer
             const [x, y] = this.convertSizeArray(100/6 + j*100/3, 100/6 + i*100/3)
@@ -157,7 +173,7 @@ export default class Game {
                 this.drawO(x, y)
             }
         } else {
-            return
+            return false
         }
         
         const translate = this.config.translateDictionary
@@ -175,7 +191,7 @@ export default class Game {
 
         if (!winOrTie) {
             this.currentPlayer = this.currentPlayer === 1 ? 2 : 1
-            return
+            return true
         }
 
         this.currentPlayer = 1
@@ -184,19 +200,24 @@ export default class Game {
         } else {
             this.stop()
         }
+
+        return true
     }
 
     start() {
         this.drawGrid()
         this.canvas.addEventListener('click', this.handleClick)
+        this.stoped = false
     }
 
     stop() {
         this.canvas.removeEventListener('click', this.handleClick)
+        this.stoped = true
     }
 
     restart() {
         this.board.status = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         this.redraw()
+        this.stoped = false
     }
 }
